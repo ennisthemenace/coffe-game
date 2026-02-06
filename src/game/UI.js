@@ -24,6 +24,12 @@ export class UI {
         img.alt = 'Coffee Machine';
         this.machineContainer.appendChild(img);
 
+        // Cup Image
+        const cupImg = document.createElement('img');
+        cupImg.src = '../../assets/cup.png';
+        cupImg.className = 'cup-image';
+        this.machineContainer.appendChild(cupImg);
+
         // Overlays Container
         const overlayContainer = document.createElement('div');
         overlayContainer.className = 'overlay-container';
@@ -52,6 +58,8 @@ export class UI {
 
     createSettingsPanel() {
         const settingsDiv = document.createElement('div');
+        // hide settings panel
+        settingsDiv.style.display = 'none';
         settingsDiv.className = 'settings-panel';
         settingsDiv.innerHTML = `
       <h3>Settings</h3>
@@ -63,6 +71,10 @@ export class UI {
         Speed (ms): 
         <input type="number" id="setting-speed" value="${CONFIG.DISPLAY_TIME}" step="100" min="200">
       </label>
+      <label>
+        Max Rounds: 
+        <input type="number" id="setting-max" value="${CONFIG.MAX_ROUNDS}" min="1" max="20">
+      </label>
     `;
         this.container.appendChild(settingsDiv);
     }
@@ -71,6 +83,7 @@ export class UI {
         return {
             startCount: parseInt(document.getElementById('setting-count').value, 10),
             displayTime: parseInt(document.getElementById('setting-speed').value, 10),
+            maxRounds: parseInt(document.getElementById('setting-max').value, 5),
         };
     }
 

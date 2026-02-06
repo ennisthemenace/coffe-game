@@ -1,9 +1,12 @@
 import { CONFIG } from '../constants';
 import { UI } from './UI';
+import { Guide } from './Guide';
+import confetti from 'canvas-confetti';
 
 export class Game {
     constructor() {
         this.ui = new UI('app');
+        this.guide = null;
         this.sequence = [];
         this.playerInput = [];
         this.round = 0;
@@ -13,6 +16,13 @@ export class Game {
 
     init() {
         this.ui.init();
+
+        // Initialize Guide attach to machine container for relative positioning
+        this.guide = new Guide(this.ui.machineContainer, () => {
+            this.runGameLoop();
+        });
+        this.guide.init();
+
         this.ui.showMessage('Press Start to Play');
         this.bindEvents();
 
@@ -32,6 +42,18 @@ export class Game {
         const settings = this.ui.getSettings();
         this.config = { ...CONFIG, ...settings };
 
+        document.querySelector('.start-btn').style.display = 'none';
+        document.querySelector('.settings-panel').style.display = 'none'; // Hide settings during game
+
+        // Trigger Cup Animation
+
+
+        // Start Guide Sequence
+        this.guide.start();
+    }
+
+
+    runGameLoop() {
         this.sequence = [];
         this.round = 0;
         this.isPlaying = true;
@@ -51,8 +73,6 @@ export class Game {
         }
 
         this.nextRound();
-        document.querySelector('.start-btn').style.display = 'none';
-        document.querySelector('.settings-panel').style.display = 'none'; // Hide settings during game
     }
 
     nextRound() {
@@ -101,15 +121,69 @@ export class Game {
         if (this.playerInput.length === this.sequence.length) {
             this.isWaitingForInput = false;
             this.ui.showMessage('Correct!');
-            setTimeout(() => this.nextRound(), 1000);
+
+            // Check for Win Condition
+            if (this.round >= this.config.maxRounds) {
+                this.handleWin();
+                return;
+            }
+
+            // Show motivational dog before next round
+            setTimeout(() => {
+                this.guide.showMotivation(() => {
+                    this.nextRound();
+                });
+            }, 500);
         }
+    }
+
+    triggerCupAnimation() {
+        const cup = document.querySelector('.cup-image');
+        if (cup) {
+            cup.classList.remove('cup-rocking');
+            void cup.offsetWidth; // Trigger reflow
+            cup.classList.add('cup-rocking');
+        }
+    }
+
+    handleWin() {
+        this.isPlaying = false;
+        confetti({
+            particleCount: 250,
+            spread: 80,
+            origin: { y: 0.6 }
+        });
+        this.triggerCupAnimation();
+
+        setTimeout(() => {
+            this.guide.showWin(() => {
+                this.round = 0;
+                this.sequence = [];
+                this.playerInput = [];
+                this.ui.showMessage(`You Win!`);
+                document.querySelector('.start-btn').style.display = 'inline-block';
+                document.querySelector('.settings-panel').style.display = 'block';
+            });
+        }, 1000);
     }
 
     gameOver() {
         this.isPlaying = false;
         this.isWaitingForInput = false;
-        this.ui.showMessage(`Game Over! Score: ${this.round}`);
-        document.querySelector('.start-btn').style.display = 'inline-block';
-        document.querySelector('.settings-panel').style.display = 'block';
+
+        // Hide game buttons or active states if any? 
+        // Just show the dog.
+        this.guide.showGameOver(() => {
+            // Reset and show start button/settings again
+            this.ui.showMessage(`Game Over! Score: ${this.round}`);
+            document.querySelector('.start-btn').style.display = 'inline-block';
+            document.querySelector('.settings-panel').style.display = 'none';
+
+            // Or maybe restart immediately? 
+            // The flow implies "Try Again" -> Resets game state to start screen.
+            this.round = 0;
+            this.sequence = [];
+            this.playerInput = [];
+        });
     }
 }
