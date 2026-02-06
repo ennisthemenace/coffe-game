@@ -18,7 +18,7 @@ export class Guide {
         this.onMotivationComplete = null;
 
         this.dialogs = [
-            "Oh no! Bjørn has neglected to service the coffee machine once again, the fait of our productivity is now in your hands!",
+            "Oh no! Bjørn has neglected to service the coffee machine once again, the fate of our productivity is now in your hands!",
             "Memorize the color sequences and click them in again to fix the coffee machine and save the day"
         ];
 
